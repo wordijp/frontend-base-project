@@ -1,0 +1,23 @@
+{
+    "comment": "TypeScript syntastic for atom ide",
+    "version": "1.4.1",
+    "compilerOptions": {
+        "target": "es5",
+        "module": "commonjs",
+        "declaration": false,
+        "noImplicitAny": false,
+        "removeComments": true,
+        "noLib": false
+    },
+    "filesGlob": [
+        "./src/**/*.ts",
+        "./test_src/**/*.ts",
+        "./gulpscripts/**/*.ts",
+        "!./node_modules/**/*.ts"
+    ],
+    "files": [
+        "./src/scripts/app.ts",
+        "./test_src/scripts/add-test.ts",
+        "./gulpscripts/ambient-external-module.ts"
+    ]
+}

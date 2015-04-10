@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+		<meta charset="utf-8" />
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="./lib/mocha.css" />
+    </head>
+
+	<body>
+		<h3><a href="test.html">Top</a></h3>
+
+		<div id="mocha"></div>
+
+		<!-- mocha setup -->
+        <script src="./lib/browser-source-map-support.js"></script>
+        <script src="./lib/jquery.js"></script>
+        <script src="./lib/mocha.js"></script>
+        <script>
+            mocha.setup('bdd');
+        </script>
+
+		<!-- run mocha test -->
+        <script src="./run-browser-source-map-support.js"></script>
+        <script src="./get-document-bundle.js"></script>
+        <script src="./test-bundle.js"></script>
+		<script>
+			//mocha.checkLeaks();
+			mocha.run();
+        </script>
+    </body>
+
+</html>
