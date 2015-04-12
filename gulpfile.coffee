@@ -84,17 +84,19 @@ gulp.task 'build:html', () ->
     .pipe(gulp.dest 'public')
 
 # browserify task
-createBrowserifyStream = (watching) -> browserifyTask.browserifyBundleStream('lib', 'public', {watching: watching, bundle_name: 'bundle.js'})
+common_bundle_requires = ['react']
+gulp.task 'browserify-requireonly', () -> browserifyTask.browserifyBundleStreamRequireOnly(common_bundle_requires, 'public', {bundle_name: 'common-bundle.js'})
 
+createBrowserifyStream = (watching) -> browserifyTask.browserifyBundleStream('lib', 'public', {watching: watching, excludes: [].concat(common_bundle_requires), bundle_name: 'bundle.js'})
 gulp.task 'browserify', () -> createBrowserifyStream(false)
 gulp.task 'watchify',   () -> createBrowserifyStream(true)
 
 # ----------------
 # public tasks ---
 
-gulp.task 'build',     (cb) -> runSequence('clean:src', 'mkdir', 'build:lib', 'browserify', cb)
+gulp.task 'build',     (cb) -> runSequence('clean:src', 'mkdir', 'build:lib', 'browserify-requireonly', 'browserify', cb)
 
-gulp.task 'pre-watch', (cb) -> runSequence('clean:src', 'mkdir', 'build:lib', 'watchify', cb)
+gulp.task 'pre-watch', (cb) -> runSequence('clean:src', 'mkdir', 'build:lib', 'browserify-requireonly', 'watchify', cb)
 gulp.task 'watch', ['pre-watch'], () ->
   # changed watch
   changedWatch = (watch_files, task_name) ->
@@ -191,8 +193,11 @@ gulp.task 'build:test-html', () ->
     .pipe(gulp.dest 'test_public')
 
 # test browserify task
+test_common_bundle_requires = ['react', 'react/addons', 'sinon', 'chai']
+gulp.task 'test:browserify-requireonly', () -> browserifyTask.browserifyBundleStreamRequireOnly(test_common_bundle_requires, 'test_public', {bundle_name: 'test-common-bundle.js'})
+
 createTestBrowserifyStream = (watching) ->
-  browserifyTask.browserifyBundleStream('test_lib', 'test_public', {watching: watching, excludes: ['./get-document'], bundle_name: 'test-bundle.js'}, () ->
+  browserifyTask.browserifyBundleStream('test_lib', 'test_public', {watching: watching, excludes: ['./get-document'].concat(test_common_bundle_requires), bundle_name: 'test-bundle.js'}, () ->
 
     # require is mocha tasks
     mochaTask.createRunSourceMapSupport('test_public', 'test_public', {is_browser: false, file_name: 'run-source-map-support.js'})
@@ -200,7 +205,6 @@ createTestBrowserifyStream = (watching) ->
 
     $.util.log("created run-source-map-support")
   )
-
 gulp.task 'test:watchify', () -> createTestBrowserifyStream(true)
 gulp.task 'test:browserify', () -> createTestBrowserifyStream(false)
 
@@ -211,6 +215,7 @@ gulp.task 'create:get-document', () ->
 gulp.task 'test:mocha', () ->
   gulp.src([
    "./test_public/run-source-map-support.js"
+   "./test_public/test-common-bundle.js"
    "./test_public/test-bundle.js"
    "./test_public/get-document.js"
   ])
@@ -245,9 +250,9 @@ gulp.task 'test:livereload', ['pre-test:livereload'], () ->
 # ---------------------
 # public test tasks ---
 
-gulp.task 'test',           (cb) -> runSequence('clean:test', 'mkdir:test', 'build:test-lib', 'create:get-document', 'test:browserify', 'test:mocha', cb)
+gulp.task 'test',           (cb) -> runSequence('clean:test', 'mkdir:test', 'build:test-lib', 'create:get-document', 'test:browserify-requireonly', 'test:browserify', 'test:mocha', cb)
 
-gulp.task 'pre-test:watch', (cb) -> runSequence('clean:test', 'mkdir:test', 'build:test-lib', 'create:get-document', 'test:watchify', ['test:mocha', 'test:livereload'], cb)
+gulp.task 'pre-test:watch', (cb) -> runSequence('clean:test', 'mkdir:test', 'build:test-lib', 'create:get-document', 'test:browserify-requireonly', 'test:watchify', ['test:mocha', 'test:livereload'], cb)
 gulp.task 'test:watch', ['pre-test:watch'], () ->
 
   console.log('**********************************')

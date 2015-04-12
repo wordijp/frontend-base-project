@@ -17,6 +17,35 @@ mergeSourcemaps = require '../merge-multi-sourcemap'
 dbg             = require '../debug/debug'
 errorHandler    = require('../notify-error').errorHandler
 
+
+browserifyBundleStreamRequireOnly = (requires, out_root, conf, bundled_callback) ->
+  config = defaults(conf, {
+    bundle_name: undefined
+  })
+  dbg.checkObjectValid(config)
+  bundled_callback = bundled_callback || () -> # no-op
+
+  b = browserify()
+  for x in requires
+    b.require(x)
+    
+  b
+    .bundle()
+    .pipe(source config.bundle_name)
+    .pipe(buffer())
+    .pipe(dbg.dbgInitSourcemaps {loadMaps: true})
+    .pipe(dbg.dbgCompress())
+    .pipe(dbg.dbgWriteSourcemaps '.', {
+      sourceRoot: '..'
+      includeContent: false
+    })
+    .pipe(gulp.dest out_root)
+    .pipe($.duration "browserify #{config.bundle_name} bundle time")
+    .pipe(callback(() ->
+      # no-op : 元のmoduleはjs前提なので、多段ソースマップの合成は想定していない
+    ))
+    .pipe(callback bundled_callback)
+
 browserifyBundleStream = (lib_root, out_root, conf, bundled_callback) ->
   config = defaults(conf, {
     watching: false
@@ -58,7 +87,7 @@ browserifyBundleStream = (lib_root, out_root, conf, bundled_callback) ->
     b
       .bundle()
       .on('error', errorHandler)
-      .pipe(source "#{config.bundle_name}")
+      .pipe(source config.bundle_name)
       .pipe(buffer())
       .pipe(dbg.dbgInitSourcemaps {loadMaps: true})
       .pipe(dbg.dbgCompress())
@@ -66,7 +95,7 @@ browserifyBundleStream = (lib_root, out_root, conf, bundled_callback) ->
         sourceRoot: '..'
         includeContent: false
       })
-      .pipe(gulp.dest out_root) # public
+      .pipe(gulp.dest out_root)
       .pipe($.duration "browserify #{config.bundle_name} bundle time")
       .pipe(callback(() ->
         second_map = "#{out_root}/#{config.bundle_name}.map"
@@ -103,4 +132,5 @@ browserifyBundleStream = (lib_root, out_root, conf, bundled_callback) ->
 # exports ---
 
 module.exports =
+  browserifyBundleStreamRequireOnly: browserifyBundleStreamRequireOnly
   browserifyBundleStream: browserifyBundleStream
