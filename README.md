@@ -12,10 +12,13 @@
 	- [‘½’iƒ\[ƒXƒ}ƒbƒv‚Ì‰ğŒˆ‚É‚Â‚¢‚Ä](#multi_source_map)
 - React‚É‘Î‰‚µ‚½mocha‚É‚æ‚éƒRƒ“ƒ\[ƒ‹Aƒuƒ‰ƒEƒU—¼‘Î‰‚ÌƒeƒXƒg
 	- [mocha‚ÌReact‘Î‰‚É‚Â‚¢‚Ä](#using_react_for_mocha)
+- Watchify‚É‚æ‚é©“®ƒrƒ‹ƒhŠÔ‚ğ‹É—Í’Zk
+	- [bundleƒtƒ@ƒCƒ‹‚Ì\¬‚É‚Â‚¢‚Ä](#about_bundle_file)
+
 
 ‚Ü‚½Agulp‚Ìbuild‚âwatch’†‚ÉƒGƒ‰[‚ª”­¶‚·‚é‚ÆƒGƒ‰[’Ê’m‚ª‚³‚ê‚é‚æ‚¤‚É‚µ‚Ä‚¢‚Ü‚·B
 
-## Usage
+# Usage
 
 1. npm install
 2. tsd update -s
@@ -26,7 +29,7 @@
 
 --env productionƒIƒvƒVƒ‡ƒ“‚ğ•t‚¯‚é‚ÆŒöŠJ—p‚Æ‚µ‚Äbundleƒtƒ@ƒCƒ‹‚Ìˆ³k‚ğA–³‚µ‚¾‚ÆŠJ”­—p‚Æ‚µ‚Äbundleƒtƒ@ƒCƒ‹¶¬‚Éƒ\[ƒXƒ}ƒbƒv‚à¶¬‚µ‚Ü‚·B
 		
-## ƒtƒ@ƒCƒ‹\¬
+# ƒtƒ@ƒCƒ‹\¬
 
 ```
 root
@@ -80,7 +83,7 @@ root
 
 ```
 
-## <a name="alias"></a> ƒ\[ƒX‚Ö‚Ìrequire—p‚ÌaliasAƒ†[ƒUŠO•”ƒ‚ƒWƒ…[ƒ‹‰»‚É‚Â‚¢‚Ä
+# <a name="alias"></a> ƒ\[ƒX‚Ö‚Ìrequire—p‚ÌaliasAƒ†[ƒUŠO•”ƒ‚ƒWƒ…[ƒ‹‰»‚É‚Â‚¢‚Ä
 
 ƒ\[ƒX’†‚É“Æ©ƒ^ƒO‚Å‚ ‚é
 ```ts
@@ -114,7 +117,7 @@ Hoge.foo();
 
 ‚Æ‚¢‚¤‘‚«•û‚ğ‚·‚é–‚ªo—ˆ‚Ü‚·B
 
-## <a name="multi_source_map"></a> ‘½’iƒ\[ƒXƒ}ƒbƒv‚Ì‰ğŒˆ‚É‚Â‚¢‚Ä
+# <a name="multi_source_map"></a> ‘½’iƒ\[ƒXƒ}ƒbƒv‚Ì‰ğŒˆ‚É‚Â‚¢‚Ä
 
 AltJS‚©‚çbrowserify‚É‚æ‚ébundleƒtƒ@ƒCƒ‹¶¬‚Ü‚Å‚Ì—¬‚ê‚ÍAˆÈ‰º‚Ì‚æ‚¤‚É‚È‚Á‚Ä‚¢‚Ü‚·B
 
@@ -144,10 +147,10 @@ bundle.js‚Ìƒ\[ƒXƒ}ƒbƒvƒtƒ@ƒCƒ‹‚©‚çAAltJS‚Ö‚Æ’¼Ú•R‚Ã‚¯‚é•K—v‚ª‚ ‚è‚Ü‚·B
 	- [Source Map‚ğˆµ‚¤ŠÖ˜Aƒ‰ƒCƒuƒ‰ƒŠ‚Ì‚Ü‚Æ‚ß](http://efcl.info/2014/0622/res3933/)
 	- https://github.com/azu/multi-stage-sourcemap
 		
-## <a name="using_react_for_mocha"></a> mocha‚ÌReact‘Î‰‚É‚Â‚¢‚Ä
+# <a name="using_react_for_mocha"></a> mocha‚ÌReact‘Î‰‚É‚Â‚¢‚Ä
 
 
-### ƒtƒ@ƒCƒ‹\¬‚É‚Â‚¢‚Ä
+## ƒtƒ@ƒCƒ‹\¬‚É‚Â‚¢‚Ä
 
 ƒeƒXƒg—p‚Ìjsƒtƒ@ƒCƒ‹‚ÍA‰º‹L‚Ì\¬‚É‚È‚Á‚Ä‚¢‚Ü‚·B
 
@@ -181,7 +184,7 @@ b.require('get-document-bundle.js', expose: './get-document')
 ‚Ærequire–¼‚ğ’è‹`‚µ‚Ätest-bundle.js‚©‚çŒ©‚¦‚é‚æ‚¤‚É‚µ‚Ä‚¢‚Ü‚·B  
 ƒRƒ“ƒ\[ƒ‹‘¤‚Å‚Í“¯–¼‚Æ‚È‚éget-document.js‚Ì‚Ü‚Ü‚É‚µ‚ÄAnode.js‘¤‚Ìrequire‚ğ—˜—p‚·‚é‚â‚â— ‹Z“I‚È•û–@‚Å‘Îˆ‚µ‚Ä‚¢‚Ü‚·B
 
-### run-(browser-)source-map-support.js‚É‚Â‚¢‚Ä
+## run-(browser-)source-map-support.js‚É‚Â‚¢‚Ä
 
 ‘½’iƒ\[ƒXƒ}ƒbƒv‚ğ—˜—p‚µ‚Ä‚¢‚é‚½‚ßAsourceMapSupport.install()‚ÌretrieveSourceMapƒƒ\ƒbƒh“à‚ÅAŠeƒtƒ@ƒCƒ‹‚É‘Î‰‚µ‚½ƒ\[ƒXƒ}ƒbƒv‚ğ•Ô‚·•K—v‚ª‚ ‚è‚Ü‚·B
 
@@ -198,8 +201,33 @@ sourceMapSupport.install({
 
 ‚±‚Ìƒf[ƒ^‚ÍArun-(browser-)source-map-support.js‚Ì¶¬‚Éƒ\[ƒXƒ}ƒbƒvƒtƒ@ƒCƒ‹‚ğ“Ç‚İ‚ñ‚Å–„‚ß‚Ş–‚É‚æ‚è‘Îˆ‚µ‚Ä‚¢‚Ü‚·B
 
+# <a name="about_bundle_file"></a> bundleƒtƒ@ƒCƒ‹‚Ì\¬‚É‚Â‚¢‚Ä
 
-## TypeScript‚Ì’è‹`ƒtƒ@ƒCƒ‹‚É‚Â‚¢‚Ä
+bundleƒtƒ@ƒCƒ‹‚ÍAReact“™‚Ì‹¤’Êmodule‚ğbundle‚µ‚½common-bundle.js‚ÆAŠJ”­‚ÌsrcƒfƒBƒŒƒNƒgƒŠ‚ğbundle‚µ‚½bundle.js‚É•ª‚¯‚Ä‚¢‚Ü‚·B
+
+```
+public
+„¥„Ÿ„Ÿ bundle.js        - srcƒfƒBƒŒƒNƒgƒŠ‚Ìbundle
+„¤„Ÿ„Ÿ common-module.js - ‹¤’Êmodule‚Ìbundle(React“™)
+```
+
+ŠJ”­’†‚Égulp watch‚ğŠJn‚µAsrcƒfƒBƒŒƒNƒgƒŠ‚ÌƒR[ƒfƒBƒ“ƒO‚ğ‚µ‚½Û‚Ébundle.js‚¾‚¯‚ğ©“®ƒrƒ‹ƒh‚Ì‘ÎÛ‚Æ‚·‚é–‚ÅÄbundleŠÔ‚Ì’Zk‚ğ}‚Á‚Ä‚¢‚Ü‚·B
+’ˆÓ“_‚Æ‚µ‚Ä‚Íbundleƒtƒ@ƒCƒ‹‚ª•¡”‚ ‚é–‚Ö‚Ì”F¯‚ÆAgulpfile‚Ìcommon-module.js‚ÉØ‚èo‚·İ’è–Y‚ê‚ğ‚·‚é‚Æbundle.js‘¤‚Émodule‚ªŠÜ‚Ü‚ê‚Ä‚µ‚Ü‚Á‚½‚èAØ‚èo‚µ‚½‚Ü‚Ü‚É‚·‚é‚Æ–¢g—p‚Ì‹¤’Êmodule‚ªcommon-bundle.js‘¤‚ÉŠÜ‚Ü‚ê‚Ä‚µ‚Ü‚¤–‚Å‚·B
+‚»‚Ìˆ×Acommon-module.js‚Ö‚ÆØ‚èo‚·‚ÍAg—p‚·‚éó‘Ô‚ª•s•Ï‚Å‚ ‚é(React‚ÅWebƒTƒCƒg‚ğì‚éê‡‚ÍReact‚ğ•K‚¸g‚¤ˆ×AReact‚ğØ‚èo‚·‚Ì‚Í‘Ã“–)module‚ğ‘I‚ñ‚¾•û‚ªAƒ`[ƒ€“à‚Å‚à‚Ç‚ê‚ğØ‚èo‚·‚×‚«‚©‚Ì¬—‚ª­‚È‚­Ï‚İ‚Ü‚·B
+
+```coffee:gulpfile.coffee
+# reactƒ‚ƒWƒ…[ƒ‹‚ğAcommon-bundle.js‚Ö
+gulp.task 'browserify-requireonly', () ->
+  browserifyTask.browserifyBundleStreamRequireOnly(['react'], 'public', {bundle_name: 'common-bundle.js'})
+
+# reactƒ‚ƒWƒ…[ƒ‹‚ğAbundle.js‚ÖŠÜ‚ß‚È‚¢
+createBrowserifyStream = (watching) ->
+  browserifyTask.browserifyBundleStream('lib', 'public', {watching: watching, excludes: ['react'], bundle_name: 'bundle.js'})
+
+gulp.task 'browserify', () -> createBrowserifyStream(false)
+```
+
+# TypeScript‚Ì’è‹`ƒtƒ@ƒCƒ‹‚É‚Â‚¢‚Ä
 
 ’è‹`ƒtƒ@ƒCƒ‹‚ÍADefinitelyTyped‚É‚æ‚èŒöŠJ‚³‚ê‚Ä‚¢‚éƒ‚ƒWƒ…[ƒ‹—pEsrcƒfƒBƒŒƒNƒgƒŠ—pEtest_srcƒfƒBƒŒƒNƒgƒŠ—p‚Ì3í—Ş‚ª‚ ‚èA
 src—pAtest_src—p‚Ígulp‚Å©“®¶¬‚³‚êATypeScript‚ğ•ÒW‚µ‚½Û‚É‚à©“®XV‚³‚ê‚Ü‚·B
@@ -228,6 +256,6 @@ src—pAtest_src—p‚Ígulp‚Å©“®¶¬‚³‚êATypeScript‚ğ•ÒW‚µ‚½Û‚É‚à©“®XV‚³‚ê‚Ü‚
 /// <reference path="../../test_src_typings/tsd.d.ts" />
 ```
 
-## Licence
+# Licence
 
 MIT
