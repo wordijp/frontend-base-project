@@ -11,6 +11,9 @@ Enumerable = require 'linq'
 
 defaults   = require 'defaults'
 
+maybeMultiRequire = require 'browserify-maybe-multi-require'
+getRequiresFromFiles = require '../get-requires-from-files'
+
 aem             = require '../ambient-external-module'
 callback        = require '../gulp-callback'
 mergeSourcemaps = require '../merge-multi-sourcemap'
@@ -18,54 +21,75 @@ dbg             = require '../debug/debug'
 errorHandler    = require('../notify-error').errorHandler
 
 
-browserifyBundleStreamRequireOnly = (requires, out_root, conf, bundled_callback) ->
+prev_requires = []
+args_requireonly = _.merge(_.cloneDeep(watchify.args), {
+  cache: {}
+  packageCache: {}
+  fullPaths: false
+  
+  debug: !dbg.is_production
+})
+browserifyBundleStreamRequireOnly = (lib_root, out_root, conf, bundled_callback) ->
   config = defaults(conf, {
     bundle_name: undefined
+    requires: []
   })
   dbg.checkObjectValid(config)
   bundled_callback = bundled_callback || () -> # no-op
-
-  b = browserify()
-  for x in requires
-    b.require(x)
     
-  b
-    .bundle()
-    .pipe(source config.bundle_name)
-    .pipe(buffer())
-    .pipe(dbg.dbgInitSourcemaps {loadMaps: true})
-    .pipe(dbg.dbgCompress())
-    .pipe(dbg.dbgWriteSourcemaps '.', {
-      sourceRoot: '..'
-      includeContent: false
-    })
-    .pipe(gulp.dest out_root)
-    .pipe($.duration "browserify #{config.bundle_name} bundle time")
-    .pipe(callback(() ->
-      # no-op : 元のmoduleはjs前提なので、多段ソースマップの合成は想定していない
-    ))
-    .pipe(callback bundled_callback)
+  dotslash_lib_root = lib_root.replace(/^(\.\/)?/, './')
 
+  entries = globule.find("#{dotslash_lib_root}/**/*.js")
+  entry_requires = _.sortBy(getRequiresFromFiles(entries))
+  # 必要時だけ再bundle
+  if (!_.isEqual(entry_requires, prev_requires))
+    prev_requires = entry_requires
+
+    b = browserify(args_requireonly)
+    b.plugin(maybeMultiRequire, {
+      require: config.requires
+      getFiles: () -> entries
+    })
+    w = watchify(b) # 差分ビルドのみに使う
+    b
+      .bundle()
+      .pipe(source config.bundle_name)
+      .pipe(buffer())
+      .pipe(dbg.dbgInitSourcemaps {loadMaps: true})
+      .pipe(dbg.dbgCompress())
+      .pipe(dbg.dbgWriteSourcemaps '.', {
+        sourceRoot: '..'
+        includeContent: false
+      })
+      .pipe(gulp.dest out_root)
+      .pipe($.duration "browserify #{config.bundle_name} bundle time")
+      .pipe(callback(() ->
+        # no-op : 元のmoduleはjs前提なので、多段ソースマップの合成は想定していない
+      ))
+      .pipe(callback bundled_callback)
+      .on('end', () ->
+        w.close()
+      )
+
+args_main = _.merge(_.cloneDeep(watchify.args), {
+  cache: {}
+  packageCache: {}
+  fullPaths: false
+
+  debug: !dbg.is_production
+})
 browserifyBundleStream = (lib_root, out_root, conf, bundled_callback) ->
   config = defaults(conf, {
-    watching: false
     excludes: []
     bundle_name: undefined
   })
   dbg.checkObjectValid(config)
   bundled_callback = bundled_callback || () -> # no-op
 
-  args = _.merge(watchify.args, {
-    cache: {}
-    packageCache: {}
-    fullPaths: false
-
-    debug: !dbg.is_production
-  })
-  b = browserify(args)
-
   dotslash_lib_root = lib_root.replace(/^(\.\/)?/, './')
-
+  
+  # setup
+  b = browserify(args_main)
   # ソース一式を追加
   module_tags = Enumerable.from(aem.collect {root: dotslash_lib_root, include_ext: ['.js']})
     .where(aem.isAlias)
@@ -80,54 +104,57 @@ browserifyBundleStream = (lib_root, out_root, conf, bundled_callback) ->
   for x in module_tags
     b.add(x.file)
     b.require(x.file, expose: x.value)
-  for x in config.excludes
-    b.exclude(x)
+  b.plugin(maybeMultiRequire, {
+    require: ['*']
+    getFiles: () -> main_files.concat(module_tags.map((x) -> x.file))
+    external: config.excludes
+  })
+  # bundle
+  w = watchify(b) # 差分ビルドのみに使う
+  b
+    .bundle()
+    .on('error', (err) ->
+      errorHandler(err)
+      this.emit('end')
+    )
+    .pipe(source config.bundle_name)
+    .pipe(buffer())
+    .pipe(dbg.dbgInitSourcemaps {loadMaps: true})
+    .pipe(dbg.dbgCompress())
+    .pipe(dbg.dbgWriteSourcemaps '.', {
+      sourceRoot: '..'
+      includeContent: false
+    })
+    .pipe(gulp.dest out_root)
+    .pipe($.duration "browserify #{config.bundle_name} bundle time")
+    .pipe(callback(() ->
+      second_map = "#{out_root}/#{config.bundle_name}.map"
 
-  bundle = () ->
-    b
-      .bundle()
-      .on('error', errorHandler)
-      .pipe(source config.bundle_name)
-      .pipe(buffer())
-      .pipe(dbg.dbgInitSourcemaps {loadMaps: true})
-      .pipe(dbg.dbgCompress())
-      .pipe(dbg.dbgWriteSourcemaps '.', {
-        sourceRoot: '..'
-        includeContent: false
-      })
-      .pipe(gulp.dest out_root)
-      .pipe($.duration "browserify #{config.bundle_name} bundle time")
-      .pipe(callback(() ->
-        second_map = "#{out_root}/#{config.bundle_name}.map"
+      # 多段ソースマップの合成
+      if !dbg.is_production
+        timeMsg = "merged #{second_map}"
+        console.time(timeMsg)
 
-        # 多段ソースマップの合成
-        if !dbg.is_production
-          timeMsg = "merged #{second_map}"
-          console.time(timeMsg)
+        second = fs.readFileSync(second_map).toString().trim()
 
-          second = fs.readFileSync(second_map).toString().trim()
+        first_files = globule.find("#{dotslash_lib_root}/**/*.js.map")
+        
+        second = mergeSourcemaps.merges(
+          first_files.map((x) ->
+            {value: fs.readFileSync(x).toString().trim(), maproot: lib_root}
+          ),
+          {value: second, maproot: out_root}
+        )
 
-          first_files = globule.find("#{dotslash_lib_root}/**/*.js.map")
-          
-          second = mergeSourcemaps.merges(
-            first_files.map((x) ->
-              {value: fs.readFileSync(x).toString().trim(), maproot: lib_root}
-            ),
-            {value: second, maproot: out_root}
-          )
+        fs.renameSync(second_map, "#{second_map}.old") # 保存前にオリジナルを退避
+        fs.writeFileSync(second_map, second)
 
-          fs.renameSync(second_map, "#{second_map}.old") # 保存前にオリジナルを退避
-          fs.writeFileSync(second_map, second)
-
-          console.timeEnd(timeMsg)
-      ))
-      .pipe(callback bundled_callback)
-
-  if (config.watching)
-    w = watchify(b, {delay: 100})
-    w.on('update', bundle)
-
-  bundle()
+        console.timeEnd(timeMsg)
+    ))
+    .pipe(callback bundled_callback)
+    .on('end', () ->
+      w.close()
+    )
 
 # exports ---
 

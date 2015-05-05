@@ -20,7 +20,6 @@ tsTask         = require './gulpscripts/tasks/ts-task'
 coffeeTask     = require './gulpscripts/tasks/coffee-task'
 browserifyTask = require './gulpscripts/tasks/browserify-task'
 mochaTask      = require './gulpscripts/tasks/mocha-task'
-moduleTask     = require './gulpscripts/tasks/module-task'
 reactJadeTask  = require './gulpscripts/tasks/react-jade-task'
 
 cwd = require('process').cwd().replace(/\\/g, '/')
@@ -28,11 +27,6 @@ npm_bin = "#{cwd}/node_modules/.bin"
 
 # ---------------
 # build tasks ---
-
-gulp.task 'check:rename-module', () ->
-  moduleTask.checkRenameModule('src', () ->
-    notifyError('check:rename-module', 'please restart gulp') # browserifyのrequireの再設定が必要
-  )
 
 gulp.task 'clean:src', (cb) -> del(['public', 'lib', 'lib_tmp', 'src_typings', 'src_typings_tmp', 'tmp'], cb)
 
@@ -85,48 +79,35 @@ gulp.task 'build:html', () ->
 
 # browserify task
 common_bundle_requires = ['react']
-gulp.task 'browserify-requireonly', () -> browserifyTask.browserifyBundleStreamRequireOnly(common_bundle_requires, 'public', {bundle_name: 'common-bundle.js'})
+gulp.task 'browserify-requireonly', () -> browserifyTask.browserifyBundleStreamRequireOnly('lib', 'public', {requires: common_bundle_requires, bundle_name: 'common-bundle.js'})
 
-createBrowserifyStream = (watching) -> browserifyTask.browserifyBundleStream('lib', 'public', {watching: watching, excludes: [].concat(common_bundle_requires), bundle_name: 'bundle.js'})
-gulp.task 'browserify', () -> createBrowserifyStream(false)
-gulp.task 'watchify',   () -> createBrowserifyStream(true)
+gulp.task 'browserify', () -> browserifyTask.browserifyBundleStream('lib', 'public', {excludes: [].concat(common_bundle_requires), bundle_name: 'bundle.js'})
 
 # ----------------
 # public tasks ---
 
 gulp.task 'build',     (cb) -> runSequence('clean:src', 'mkdir', 'build:lib', 'browserify-requireonly', 'browserify', cb)
 
-gulp.task 'pre-watch', (cb) -> runSequence('clean:src', 'mkdir', 'build:lib', 'browserify-requireonly', 'watchify', cb)
+gulp.task 'pre-watch', (cb) -> runSequence('clean:src', 'mkdir', 'build:lib', 'browserify-requireonly', 'browserify', cb)
 gulp.task 'watch', ['pre-watch'], () ->
-  # changed watch
-  changedWatch = (watch_files, task_name) ->
-    watcher = gulp.watch(watch_files)
-    watcher.on('change', (e) ->
-      if (e.type is 'changed')
-        runSequence(task_name)
-    )
-  changedWatch(['src/**/*.ts', '!src/**/*.d.ts'], ['check:rename-module' , 'build:ts'])
-  changedWatch('src/**/*.coffee'                , ['check:rename-module' , 'build:coffee'])
-  changedWatch('src/**/*.cjsx'                  , ['check:rename-module' , 'build:cjsx'])
-  changedWatch('src/**/*.jade'                  , ['build:react-jade'])
-  changedWatch('src/**/*.html'                  , ['build:html'])
+  
+  tryUnlinkEvent = (e) ->
+    if (e.event is 'unlink')
+      for x in e.history
+        relative = toRelativePath(x)
+        lib_js = relative.replace(/^src/, 'lib').replace(/\.[^.]+$/, '.js')
+        if (fs.existsSync(lib_js))
+          fs.unlinkSync(lib_js)
+        if (fs.existsSync(lib_js + '.map'))
+          fs.unlinkSync(lib_js + '.map')
 
-  # (add | unlink) watch
-  addOrUnlinkWatch = (watch_files, cb) ->
-    watcher = gulp.watch(watch_files)
-    watcher.on('change', (e) ->
-      if (e.type is 'added' or e.type is 'deleted')
-        cb(e)
-    )
-  addOrUnlinkWatch [
-    'src/**/*.ts'
-    'src/**/*.coffee'
-    'src/**/*.cjsx'
-    'src/**/*.jade'
-  ], (e) ->
-    notifyError('add or unlink', 'please restart gulp', toRelativePath(e.path) + " is " + e.type) # browserifyのadd、requireの再設定が必要
-
-
+  # NOTE : watchifyの監視機能は使わずに、明示的に再バンドルする
+  $.watch ['src/**/*.ts', '!src/**/*.d.ts'], (e) -> tryUnlinkEvent(e); runSequence('build:ts'        , 'browserify-requireonly', 'browserify')
+  $.watch 'src/**/*.coffee'                , (e) -> tryUnlinkEvent(e); runSequence('build:coffee'    , 'browserify-requireonly', 'browserify')
+  $.watch 'src/**/*.cjsx'                  , (e) -> tryUnlinkEvent(e); runSequence('build:cjsx'      , 'browserify-requireonly', 'browserify')
+  $.watch 'src/**/*.jade'                  , (e) -> tryUnlinkEvent(e); runSequence('build:react-jade', 'browserify-requireonly', 'browserify')
+  $.watch 'src/**/*.html', () -> runSequence('build:html')
+  
 gulp.task 'clean', ['clean:src', 'clean:test']
 
 gulp.task 'default', () ->
@@ -138,11 +119,6 @@ gulp.task 'default', () ->
 
 # --------------------
 # build test tasks ---
-
-gulp.task 'check:test-rename-module', () ->
-  moduleTask.checkRenameModule('test_src', () ->
-    notifyError('check:test-rename-module', 'please restart gulp (test)') # browserifyのrequireの再設定が必要
-  )
 
 gulp.task 'mkdir:test', () ->
   if (!fs.existsSync('test_src_typings'))
@@ -194,10 +170,10 @@ gulp.task 'build:test-html', () ->
 
 # test browserify task
 test_common_bundle_requires = ['react', 'react/addons', 'sinon', 'chai']
-gulp.task 'test:browserify-requireonly', () -> browserifyTask.browserifyBundleStreamRequireOnly(test_common_bundle_requires, 'test_public', {bundle_name: 'test-common-bundle.js'})
+gulp.task 'test:browserify-requireonly', () -> browserifyTask.browserifyBundleStreamRequireOnly('test_lib', 'test_public', {requires: test_common_bundle_requires, bundle_name: 'test-common-bundle.js'})
 
-createTestBrowserifyStream = (watching) ->
-  browserifyTask.browserifyBundleStream('test_lib', 'test_public', {watching: watching, excludes: ['./get-document'].concat(test_common_bundle_requires), bundle_name: 'test-bundle.js'}, () ->
+gulp.task 'test:browserify', () ->
+  browserifyTask.browserifyBundleStream('test_lib', 'test_public', {excludes: ['./get-document'].concat(test_common_bundle_requires), bundle_name: 'test-bundle.js'}, () ->
 
     # require is mocha tasks
     mochaTask.createRunSourceMapSupport('test_public', 'test_public', {is_browser: false, file_name: 'run-source-map-support.js'})
@@ -205,8 +181,6 @@ createTestBrowserifyStream = (watching) ->
 
     $.util.log("created run-source-map-support")
   )
-gulp.task 'test:watchify', () -> createTestBrowserifyStream(true)
-gulp.task 'test:browserify', () -> createTestBrowserifyStream(false)
 
 # mocha task(for node)
 gulp.task 'create:get-document', () ->
@@ -218,13 +192,11 @@ gulp.task 'test:mocha', () ->
    "./test_public/test-common-bundle.js"
    "./test_public/test-bundle.js"
    "./test_public/get-document.js"
-  ])
-    .pipe($.plumber(
-      errorHandler: errorHandler
-    ))
-    .pipe($.mocha(
-      reporter: 'nyan'
-    ))
+  ]).pipe($.plumber(
+    errorHandler: errorHandler
+  )).pipe($.mocha(
+    reporter: 'nyan'
+  ))
 
 # mocha task(for browser)
 gulp.task 'pre-test:livereload', () ->
@@ -258,33 +230,22 @@ gulp.task 'test:watch', ['pre-test:watch'], () ->
   console.log('**********************************')
   console.log('** already starting gulp watch? **') # gulp watchは別consoleにしてログを分けた方が見やすい
   console.log('**********************************')
+  
+  tryUnlinkEvent = (e) ->
+    if (e.event is 'unlink')
+      for x in e.history
+        relative = toRelativePath(x)
+        lib_js = relative.replace(/^test_src/, 'test_lib').replace(/\.[^.]+$/, '.js')
+        if (fs.existsSync(lib_js))
+          fs.unlinkSync(lib_js)
+        if (fs.existsSync(lib_js + '.map'))
+          fs.unlinkSync(lib_js + '.map')
 
-  # changed watch
-  changedWatch = (watch_files, task_name) ->
-    watcher = gulp.watch(watch_files)
-    watcher.on('change', (e) ->
-      if (e.type is 'changed')
-        runSequence(task_name)
-    )
-  changedWatch ['test_src/**/*.ts', '!test_src/**/*.d.ts'], ['check:test-rename-module', 'build:test-ts']
-  changedWatch 'test_src/**/*.cjsx'                       , ['check:test-rename-module', 'build:test-cjsx']
-  changedWatch 'test_src/**/*.coffee'                     , ['check:test-rename-module', 'build:test-coffee']
-  changedWatch 'test_src/**/*.jade'                       , ['build:test-react-jade']
-  changedWatch 'test_src/**/*.html'                       , ['build:test-html']
-  $.watch('test_public/run-source-map-support.js'         , () -> runSequence(['test:mocha'])) # gulp-watchの方が反応が良い
 
-  # (add | unlink) watch
-  addOrUnlinkWatch = (watch_files, cb) ->
-    watcher = gulp.watch(watch_files)
-    watcher.on('change', (e) ->
-      if (e.type is 'added' or e.type is 'deleted')
-        cb(e)
-    )
-  addOrUnlinkWatch [
-    'test_src/**/*.ts'
-    'test_src/**/*.coffee'
-    'test_src/**/*.cjsx'
-    'test_src/**/*.jade'
-  ], (e) ->
-    notifyError('add or unlink', 'please restart gulp', toRelativePath(e.path) + " is " + e.type) # browserifyのadd、requireの再設定が必要
-
+  # NOTE : watchifyの監視機能は使わずに、明示的に再バンドルする
+  $.watch ['test_src/**/*.ts', '!test_src/**/*.d.ts'], (e) -> tryUnlinkEvent(e); runSequence('build:test-ts'        , 'test:browserify-requireonly', 'test:browserify')
+  $.watch 'test_src/**/*.cjsx'                       , (e) -> tryUnlinkEvent(e); runSequence('build:test-cjsx'      , 'test:browserify-requireonly', 'test:browserify')
+  $.watch 'test_src/**/*.coffee'                     , (e) -> tryUnlinkEvent(e); runSequence('build:test-coffee'    , 'test:browserify-requireonly', 'test:browserify')
+  $.watch 'test_src/**/*.jade'                       , (e) -> tryUnlinkEvent(e); runSequence('build:test-react-jade', 'test:browserify-requireonly', 'test:browserify')
+  $.watch 'test_src/**/*.html'                       , () -> runSequence('build:test-html')
+  $.watch 'test_public/run-source-map-support.js'    , () -> runSequence('test:mocha')
