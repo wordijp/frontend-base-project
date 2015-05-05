@@ -224,7 +224,7 @@ gulp.task 'test:livereload', ['pre-test:livereload'], () ->
 
 gulp.task 'test',           (cb) -> runSequence('clean:test', 'mkdir:test', 'build:test-lib', 'create:get-document', 'test:browserify-requireonly', 'test:browserify', 'test:mocha', cb)
 
-gulp.task 'pre-test:watch', (cb) -> runSequence('clean:test', 'mkdir:test', 'build:test-lib', 'create:get-document', 'test:browserify-requireonly', 'test:watchify', ['test:mocha', 'test:livereload'], cb)
+gulp.task 'pre-test:watch', (cb) -> runSequence('clean:test', 'mkdir:test', 'build:test-lib', 'create:get-document', 'test:browserify-requireonly', 'test:browserify', ['test:mocha', 'test:livereload'], cb)
 gulp.task 'test:watch', ['pre-test:watch'], () ->
 
   console.log('**********************************')
