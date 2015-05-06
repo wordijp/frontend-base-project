@@ -20,6 +20,9 @@ mergeSourcemaps = require '../merge-multi-sourcemap'
 dbg             = require '../debug/debug'
 errorHandler    = require('../notify-error').errorHandler
 
+_getAlias = (rawname) ->
+  str = rawname.split(':')
+  str[1] || str[0]
 
 prev_requires = []
 args_requireonly = _.merge(_.cloneDeep(watchify.args), {
@@ -40,7 +43,12 @@ browserifyBundleStreamRequireOnly = (lib_root, out_root, conf, bundled_callback)
   dotslash_lib_root = lib_root.replace(/^(\.\/)?/, './')
 
   entries = globule.find("#{dotslash_lib_root}/**/*.js")
-  entry_requires = _.sortBy(getRequiresFromFiles(entries))
+  entry_requires = _(getRequiresFromFiles(entries))
+    .intersection(
+      config.requires.map(_getAlias)
+    )
+    .sortBy()
+    .value()
   # 必要時だけ再bundle
   if (!_.isEqual(entry_requires, prev_requires))
     prev_requires = entry_requires
