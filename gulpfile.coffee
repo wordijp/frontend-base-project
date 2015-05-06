@@ -32,7 +32,7 @@ npm_bin = "#{cwd}/node_modules/.bin"
 # ---------------
 # build tasks ---
 
-gulp.task 'clean:src', (cb) -> del(['public', 'lib', 'lib_tmp', 'src_typings', 'src_typings_tmp', 'tmp'], cb)
+gulp.task 'clean:src', (cb) -> del(['public', 'lib', 'src_typings', 'src_typings_tmp', 'tmp'], cb)
 
 gulp.task 'mkdir', () ->
   if (!fs.existsSync('src_typings'))
@@ -44,14 +44,14 @@ gulp.task 'mkdir', () ->
 gulp.task 'build:lib', ['build:ts', 'build:coffee', 'build:cjsx', 'build:react-jade', 'build:html']
 
 # ts build task
-gulp.task 'pre-build:ts', () ->
+gulp.task 'build:ts', () ->
   tags = tsTask.getTsModuleTags('src')
 
   # ファンクタを渡せるのを利用した遅延評価
   # NOTE : module作成後に各処理を開始する必要がある
 
   streamqueue({objectMode: true},
-    tsTask.createTsModuleStream('src', 'src_typings_tmp', 'lib_tmp', {tags: tags})
+    tsTask.createTsModuleStream('src', 'src_typings_tmp', 'lib', {tags: tags})
       .pipe($.duration 'ts module build time'),
     () ->
       # 一端tmpに作って、IDE等の再読み込みと被らないようにしていたのを適用
@@ -60,13 +60,9 @@ gulp.task 'pre-build:ts', () ->
         .pipe(gulp.dest 'src_typings')
     ,
     () ->
-      tsTask.createTsMainStream('src', 'lib_tmp', {tags: tags})
+      tsTask.createTsMainStream('src', 'lib', {tags: tags})
         .pipe($.duration 'ts main build time')
   )
-
-gulp.task 'build:ts', ['pre-build:ts'], () ->
-  gulp.src('lib_tmp/**/*.*')
-    .pipe(gulp.dest 'lib') # watchifyへの通知も兼ねる
 
 # coffee build task
 gulp.task 'build:coffee', () -> coffeeTask.createCoffeeStream('src', 'lib')
@@ -130,19 +126,19 @@ gulp.task 'mkdir:test', () ->
   if (!fs.existsSync('test_src_typings_tmp'))
     fs.mkdir('test_src_typings_tmp')
 
-gulp.task 'clean:test', (cb) -> del(['test_public', 'test_lib', 'test_lib_tmp', 'test_src_typings', 'test_src_typings_tmp'], cb)
+gulp.task 'clean:test', (cb) -> del(['test_public', 'test_lib', 'test_src_typings', 'test_src_typings_tmp'], cb)
 
 # build task
 gulp.task 'build:test-lib', ['build:test-ts', 'build:test-coffee', 'build:test-cjsx', 'build:test-react-jade', 'build:test-html']
 
 # ts build task
-gulp.task 'pre-build:test-ts', () ->
+gulp.task 'build:test-ts', () ->
   tags = tsTask.getTsModuleTags('test_src')
 
   # ファンクタを渡せるのを利用した遅延評価
   # NOTE : module作成後に各処理を開始する必要がある
   streamqueue({objectMode: true},
-    tsTask.createTsModuleStream('test_src', 'test_src_typings_tmp', 'test_lib_tmp', {tags: tags})
+    tsTask.createTsModuleStream('test_src', 'test_src_typings_tmp', 'test_lib', {tags: tags})
       .pipe($.duration 'ts test module build time'),
     () ->
       # 一端tmpに作って、IDE等の再読み込みと被らないようにしていたのを適用
@@ -151,13 +147,9 @@ gulp.task 'pre-build:test-ts', () ->
         .pipe(gulp.dest 'test_src_typings')
     ,
     () ->
-      tsTask.createTsMainStream('test_src', 'test_lib_tmp', {tags: tags})
+      tsTask.createTsMainStream('test_src', 'test_lib', {tags: tags})
         .pipe($.duration 'ts test main build time')
   )
-
-gulp.task 'build:test-ts', ['pre-build:test-ts'], () ->
-  gulp.src('test_lib_tmp/**/*.*')
-    .pipe(gulp.dest 'test_lib') # watchifyへの通知も兼ねる
 
 # coffee build task
 gulp.task 'build:test-coffee', () -> coffeeTask.createCoffeeStream('test_src', 'test_lib')
