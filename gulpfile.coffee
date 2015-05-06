@@ -1,3 +1,7 @@
+# gulp-mocha実行時にModule did not self-registerが出ることへの応急処置
+# issue: https://github.com/TooTallNate/node-bindings/issues/17
+require('jsdom')
+
 # NOTE : gulpfileに書いとくだけで良い
 require('typescript-require')     # 他言語からTypeScriptファイルのrequireを可能にする
 require('coffee-script/register') # 他言語からCoffeeScriptファイルのrequireを可能にする
