@@ -11,7 +11,7 @@
     "react": "^0.13.1"
   },
   "devDependencies": {
-    "browserify": "^9.0.7",
+    "browserify": "^10.2.0",
     "browserify-maybe-multi-require": "^1.0.4",
     "chai": "^2.2.0",
     "coffee-script": "^1.9.2",
