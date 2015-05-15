@@ -110,6 +110,7 @@ browserifyBundleStream = (lib_root, out_root, conf, bundled_callback) ->
     b.add(x)
     b.require(x)
   for x in module_tags
+    b.add(x.file)
     b.require(x.file, expose: x.value)
   b.plugin(maybeMultiRequire, {
     require: ['*']
