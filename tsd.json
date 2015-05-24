@@ -6,25 +6,25 @@
   "bundle": "typings/tsd.d.ts",
   "installed": {
     "node/node.d.ts": {
-      "commit": "25da006de5de3d2e31252fdc988296c7c212f231"
+      "commit": "aadd63ecae3feb76ea2d4be80511e266b5c2c4a7"
     },
     "react/react.d.ts": {
-      "commit": "25da006de5de3d2e31252fdc988296c7c212f231"
+      "commit": "aadd63ecae3feb76ea2d4be80511e266b5c2c4a7"
     },
     "mocha/mocha.d.ts": {
-      "commit": "25da006de5de3d2e31252fdc988296c7c212f231"
+      "commit": "aadd63ecae3feb76ea2d4be80511e266b5c2c4a7"
     },
     "chai/chai.d.ts": {
-      "commit": "25da006de5de3d2e31252fdc988296c7c212f231"
+      "commit": "aadd63ecae3feb76ea2d4be80511e266b5c2c4a7"
     },
     "gulp/gulp.d.ts": {
-      "commit": "25da006de5de3d2e31252fdc988296c7c212f231"
+      "commit": "aadd63ecae3feb76ea2d4be80511e266b5c2c4a7"
     },
     "react/react-addons.d.ts": {
-      "commit": "25da006de5de3d2e31252fdc988296c7c212f231"
+      "commit": "aadd63ecae3feb76ea2d4be80511e266b5c2c4a7"
     },
     "sinon/sinon.d.ts": {
-      "commit": "25da006de5de3d2e31252fdc988296c7c212f231"
+      "commit": "aadd63ecae3feb76ea2d4be80511e266b5c2c4a7"
     }
   }
 }

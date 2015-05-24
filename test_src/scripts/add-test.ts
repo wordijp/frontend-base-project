@@ -1,13 +1,13 @@
 /// <reference path="../../typings/tsd.d.ts" />
 
 var getDocument = require('./get-document');
-global.document = getDocument();
+global['document'] = getDocument();
 
-global.window = document.defaultView;
-global.navigator = window.navigator;
+global['window'] = document.defaultView;
+global['navigator'] = window.navigator;
 
 import chai = require('chai');
-import assert = chai.assert;
+var assert = chai.assert;
 
 import React = require('react/addons');
 var TestUtils = React.addons.TestUtils;
