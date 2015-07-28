@@ -44,7 +44,7 @@ getTsModuleTags = (src_root) ->
 
 _createModuleProject = () ->
   $.typescript.createProject({
-    target: "ES6"
+    target: "ES5"
     module: "commonjs"
     sortOutput: true
     declarationFiles: true
@@ -90,7 +90,7 @@ createTsModuleStream = (src_root, out_dts_root, out_js_root, conf) ->
 
 _createMainProject = () ->
   $.typescript.createProject({
-    target: "ES6"
+    target: "ES5"
     module: "commonjs"
     sortOutput: true
   })
