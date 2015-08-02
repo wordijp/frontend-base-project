@@ -55,8 +55,8 @@ browserifyBundleStreamRequireOnly = (lib_root, out_root, conf, bundled_callback)
 
     b = browserify(args_requireonly)
     b.plugin(maybeMultiRequire, {
+      files: entries
       require: config.requires
-      getFiles: () -> entries
     })
     w = watchify(b) # 差分ビルドのみに使う
     b
@@ -113,9 +113,10 @@ browserifyBundleStream = (lib_root, out_root, conf, bundled_callback) ->
     b.add(x.file)
     b.require(x.file, expose: x.value)
   b.plugin(maybeMultiRequire, {
+    files: main_files.concat(module_tags.map((x) -> x.file))
     require: ['*']
-    getFiles: () -> main_files.concat(module_tags.map((x) -> x.file))
     external: config.excludes
+    ignore: module_tags.map((x) => x.value)
   })
   # bundle
   w = watchify(b) # 差分ビルドのみに使う

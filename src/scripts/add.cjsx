@@ -1,3 +1,7 @@
+###
+<ambient-external-module alias="{filename}" />
+###
+
 React = require('react')
 
 Add = React.createClass(
